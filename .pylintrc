@@ -1,0 +1,25 @@
+[MASTER]
+ignore=
+	build,
+
+[MAIN]
+recursive=yes
+
+
+[BASIC]
+good-names=
+    id,
+    df
+
+good-names-rgxs=
+	^[_a-z][_a-z0-9]?$  # allow 1 or 2 character variable names
+
+
+[MESSAGES CONTROL]
+disable=
+	fixme,
+	logging-fstring-interpolation,
+	too-few-public-methods,
+	too-many-arguments,
+	invalid-name,
+	no-else-return
