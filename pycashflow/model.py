@@ -18,6 +18,14 @@ class FinancialModel:
 
         self.items = {}
 
+    def __getitem__(self, key: str) -> LineItem:
+        """Returns the line item with the specified name."""
+        return self.items[key]
+
+    def __setitem__(self, key: str, item: LineItem) -> None:
+        """Adds a line item to the model."""
+        self.items[key] = item
+
     def run(self, start: DateLike, end: DateLike) -> "FinancialModel":
         """Simulates the financial model within the specified range."""
         # TODO! Try convert everything to datetime.

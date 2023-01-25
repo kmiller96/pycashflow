@@ -1,7 +1,6 @@
 import itertools
-import functools
 
-from .types import LineItemCallable
+from .types import LineItemCallable, LineItemOperand
 
 
 class LineItem:
@@ -12,6 +11,8 @@ class LineItem:
         func (callable): The function which computes your line item at time `t`.
     """
 
+    # pylint: disable=unnecessary-lambda-assignment
+
     ID_COUNTER = itertools.count()
 
     def __init__(self, func: LineItemCallable) -> None:
@@ -21,71 +22,95 @@ class LineItem:
     def __repr__(self):
         return f"<LineItem id='{self.id}'>"
 
+    def __call__(self, t: int) -> float:
+        """Computes the value of the line item at time `t`."""
+        return self.func(t)
+
     ###############
     ## Operators ##
     ###############
-
-    @staticmethod
-    def __validate_arithmatic_operand(f):
-        """Validates that the item passed in is of a valid type."""
-
-        @functools.wraps(f)
-        def _wrapper(self, other):
-            if not isinstance(other, self.__class__):
-                raise TypeError("Can only perform arithmatic on LineItems.")
-
-        return _wrapper
 
     def negate(self) -> "LineItem":
         """Negates a line item, making positives into negatives and vice versa."""
         return LineItem(lambda t: -self.func(t))
 
-    __neg__ = negate
+    def add(self, other: LineItemOperand) -> "LineItem":
+        """Adds a line item to another line item or a number."""
+        if isinstance(other, (int, float)):
+            return LineItem(lambda t: self.func(t) + other)
+        elif isinstance(other, LineItem):
+            return LineItem(lambda t: self.func(t) + other.func(t))
+        else:
+            raise TypeError(f"Cannot add {type(other)} to LineItem.")
 
-    @__validate_arithmatic_operand
-    def add(self, other: "LineItem") -> "LineItem":
-        """Adds two line items."""
-        return LineItem(lambda t: self.func(t) + other.func(t))
+    def sub(self, other: LineItemOperand) -> "LineItem":
+        """Subtracts a line item from another line item or a number."""
+        if isinstance(other, (int, float)):
+            return LineItem(lambda t: self.func(t) - other)
+        elif isinstance(other, LineItem):
+            return LineItem(lambda t: self.func(t) - other.func(t))
+        else:
+            raise TypeError(f"Cannot subtract {type(other)} from LineItem.")
+
+    def mul(self, other: LineItemOperand) -> "LineItem":
+        """Multiplies a line item by another line item or a number."""
+        if isinstance(other, (int, float)):
+            return LineItem(lambda t: self.func(t) * other)
+        elif isinstance(other, LineItem):
+            return LineItem(lambda t: self.func(t) * other.func(t))
+        else:
+            raise TypeError(f"Cannot add {type(other)} to LineItem.")
+
+    def div(self, other: LineItemOperand) -> "LineItem":
+        """Divides a line item by another line item or a number."""
+        if isinstance(other, (int, float)):
+            return LineItem(lambda t: self.func(t) / other)
+        elif isinstance(other, LineItem):
+            return LineItem(lambda t: self.func(t) / other.func(t))
+        else:
+            raise TypeError(f"Cannot divide {type(other)} against LineItem.")
+
+    def floordiv(self, other: LineItemOperand) -> "LineItem":
+        """Floor-divides a line item by another line item or a number."""
+        if isinstance(other, (int, float)):
+            return LineItem(lambda t: self.func(t) // other)
+        elif isinstance(other, LineItem):
+            return LineItem(lambda t: self.func(t) // other.func(t))
+        else:
+            raise TypeError(f"Cannot floor-divide {type(other)} against LineItem.")
+
+    def pow(self, other: LineItemOperand) -> "LineItem":
+        """Raises a line item to the power of another line item or a number."""
+        if isinstance(other, (int, float)):
+            return LineItem(lambda t: self.func(t) ** other)
+        elif isinstance(other, LineItem):
+            return LineItem(lambda t: self.func(t) ** other.func(t))
+        else:
+            raise TypeError(f"Cannot raise LineItem to {type(other)}.")
+
+    ############################
+    ## Magic Method Operators ##
+    ############################
+
+    __neg__ = negate
 
     __add__ = add
     __radd__ = add
 
-    @__validate_arithmatic_operand
-    def sub(self, other: "LineItem") -> "LineItem":
-        """Subtracts two line items."""
-        return self.add(-other)
-
     __sub__ = sub
-    __rsub__ = sub
-
-    @__validate_arithmatic_operand
-    def mul(self, other: "LineItem") -> "LineItem":
-        """Multiplies two line items."""
-        return LineItem(lambda t: self.func(t) * other.func(t))
+    __rsub__ = lambda self, other: -self.sub(other)
 
     __mul__ = mul
     __rmul__ = mul
 
-    @__validate_arithmatic_operand
-    def div(self, other: "LineItem") -> "LineItem":
-        """Divides two line items."""
-        return LineItem(lambda t: self.func(t) / other.func(t))
+    __div__ = div
+    __rdiv__ = lambda self, other: 1 / self.div(other)
 
-    __div__ = mul
-    __rdiv__ = mul
-
-    @__validate_arithmatic_operand
-    def floordiv(self, other: "LineItem") -> "LineItem":
-        """Floor-divides two line items."""
-        return LineItem(lambda t: self.func(t) // other.func(t))
+    __truediv__ = div
+    __rtruediv__ = div
 
     __floordiv__ = floordiv
-    __rfloordiv__ = floordiv
-
-    @__validate_arithmatic_operand
-    def pow(self, other: "LineItem") -> "LineItem":
-        """Raises a line item to another line item."""
-        return LineItem(lambda t: self.func(t) ** other.func(t))
+    __rfloordiv__ = lambda self, other: (lambda t: other // self(t))
 
     __pow__ = pow
     __rpow__ = pow
