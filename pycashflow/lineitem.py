@@ -104,10 +104,10 @@ class LineItem:
     __rmul__ = mul
 
     __div__ = div
-    __rdiv__ = lambda self, other: 1 / self.div(other)
+    __rdiv__ = lambda self, other: (lambda t: other / self(t))
 
     __truediv__ = div
-    __rtruediv__ = div
+    __rtruediv__ = lambda self, other: (lambda t: other / self(t))
 
     __floordiv__ = floordiv
     __rfloordiv__ = lambda self, other: (lambda t: other // self(t))

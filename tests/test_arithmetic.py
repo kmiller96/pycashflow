@@ -60,16 +60,16 @@ def test_lineitem_multiplication(left, right):
 @pytest.mark.parametrize(
     "left,right",
     [
-        (2, LineItem(lambda t: 2)),
-        (2.0, LineItem(lambda t: 2)),
-        (LineItem(lambda t: 2), 2),
-        (LineItem(lambda t: 2), 2.0),
+        (4, LineItem(lambda t: 2)),
+        (4.0, LineItem(lambda t: 2)),
+        (LineItem(lambda t: 4), 2),
+        (LineItem(lambda t: 4), 2.0),
     ],
 )
 def test_lineitem_division(left, right):
     """Tests that LineItems can be divided against numbers or other LineItems."""
     result = left / right
-    assert result(0) == 1.0
+    assert result(0) == 2.0
 
 
 @pytest.mark.parametrize(
