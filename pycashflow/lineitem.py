@@ -1,13 +1,14 @@
+"""Defines the LineItem class: the building block of your models."""
+
 import itertools
 
-from .types import LineItemCallable, LineItemOperand
+from pycashflow.types import LineItemCallable, LineItemOperand
 
 
 class LineItem:
     """Defines a single line item. The building block of your model.
 
     Args:
-        name (str): The name of your line item.
         func (callable): The function which computes your line item at time `t`.
     """
 
