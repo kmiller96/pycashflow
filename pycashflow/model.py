@@ -1,7 +1,7 @@
 """Defines the financial model class."""
 
-from .lineitem import LineItem
-from .types import LineItemCallable, DateLike
+from pycashflow.lineitem import LineItem
+from pycashflow.types import DateLike
 
 
 class FinancialModel:
