@@ -1,0 +1,9 @@
+Some ideas of things I want to include, or plan to include, in future versions
+of this package.
+
+Outputs:
+    [ ] Compile results into Excel workbooks.
+    [ ] Compile models into _working_ Excel workbooks.
+
+Functionality:
+    [ ] Native "corkscrew" line items (line items that self-reference previous steps).
