@@ -2,8 +2,9 @@
 
 import logging
 
+import pandas as pd
+
 from pycashflow.lineitem import LineItem
-from pycashflow.types import DateLike
 
 LOGGER = logging.getLogger(__name__)
 
@@ -12,18 +13,11 @@ class FinancialModel:
     """Defines a financial model that you wish to construct.
 
     Args:
-        name (str): The model's name. Use for filenames, titles, etc.
-        step (str): The step size of the model.
+        name (str): The model's name. Used for filenames, titles, etc.
     """
 
-    def __init__(self, name: str, step: str = "1D") -> None:
+    def __init__(self, name: str) -> None:
         self.name = name
-        self.step = step
-
-        LOGGER.warning(
-            "Currently there is no support for the `step` argument. You must "
-            "normalise your line items to the same step size manually."
-        )
 
         self.items = {}
 
@@ -35,9 +29,23 @@ class FinancialModel:
         """Adds a line item to the model."""
         self.items[key] = item
 
-    def run(self, start: DateLike, end: DateLike) -> "FinancialModel":
-        """Simulates the financial model within the specified range."""
-        # TODO! Try convert everything to datetime.
-        print(start, end)
-        print(self.items)
-        return self
+    def run(self, steps: int) -> pd.DataFrame:
+        """Simulates the financial model for the supplied number of steps.
+
+        Args:
+            steps (int): The number of steps to simulate.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the results of the simulation.
+        """
+
+        data = []
+
+        for n in range(steps):
+            data.append({k: v(n) for k, v in self.items.items()})
+
+        df = pd.DataFrame(data)
+        df.index = pd.RangeIndex(0, steps)
+        df.index.name = "step"
+
+        return df

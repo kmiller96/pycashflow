@@ -21,7 +21,7 @@ class LineItem:
 
     def __init__(self, func: LineItemCallable) -> None:
         self.id = next(self.ID_COUNTER)
-        self.func = func
+        self._func = func
 
         LOGGER.debug("Created LineItem %s.", self)
 
@@ -34,6 +34,31 @@ class LineItem:
     def __call__(self, t: int) -> float:
         """Computes the value of the line item at time `t`."""
         return self.func(t)
+
+    ################
+    ## Attributes ##
+    ################
+
+    @property
+    def func(self):
+        """Returns the underlying function."""
+        return self._func
+
+    @func.setter
+    def func(self, f: LineItemCallable):
+        """Fails when setting the function, due to the immutability of this attribute.
+
+        We force the function to be immutable to make our lives easier. If we
+        allowed this function to change post-initialisation, we'd have to
+        maintain pointers everywhere and compute each value "just-in-time". That
+        would be a nightmare.
+
+        Instead, we can just inject the `_func` attribute into composed line
+        items knowing that they will never change.
+        """
+        raise AttributeError(
+            "Cannot set the function of a LineItem after initialisation."
+        )
 
     ###############
     ## Operators ##

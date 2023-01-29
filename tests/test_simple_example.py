@@ -12,7 +12,11 @@ Our testing will model that our profits match our expectations.
 
 # pylint: disable=redefined-outer-name,unnecessary-lambda-assignment,missing-function-docstring
 
+from typing import Callable
+
 import pytest
+import pandas as pd
+from pandas.testing import assert_index_equal
 
 from pycashflow import FinancialModel, LineItem
 
@@ -28,7 +32,7 @@ def r1():
 
 @pytest.fixture
 def r2():
-    return lambda t: 100 * 10 * t
+    return lambda t: 100 + 10 * t
 
 
 @pytest.fixture
@@ -50,7 +54,7 @@ def profit(r1, r2, e1, e2):
 @pytest.fixture
 def model(r1, r2, e1, e2) -> FinancialModel:
     """Defines the financial model outlined in the module docstring."""
-    model = FinancialModel("simple", step="1M")
+    model = FinancialModel("simple")
 
     model["revenue_1"] = LineItem(r1)
     model["revenue_2"] = LineItem(r2)
@@ -72,7 +76,22 @@ def model(r1, r2, e1, e2) -> FinancialModel:
 ###########
 
 
-def test_model(model, profit):
+def test_model_correct_at_each_step(model: FinancialModel, profit: Callable):
     """Asserts that the model matches the explicitly defined profit function."""
     for t in range(1, 13):
         assert model["profit"](t) == profit(t)
+
+
+def test_model_can_return_dataframe(model: FinancialModel):
+    """Asserts that the model can return a DataFrame."""
+    results = model.run(steps=12)
+
+    assert isinstance(results, pd.DataFrame)
+    assert_index_equal(results.index, pd.RangeIndex(0, 12, name="step"))
+    assert set(results.columns) == {
+        "revenue_1",
+        "revenue_2",
+        "expense_1",
+        "expense_2",
+        "profit",
+    }
