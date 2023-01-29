@@ -7,3 +7,6 @@ Outputs:
 
 Functionality:
     [ ] Native "corkscrew" line items (line items that self-reference previous steps).
+
+Misc:
+    [ ] Setup CD process to automatically build and release to PyPI
