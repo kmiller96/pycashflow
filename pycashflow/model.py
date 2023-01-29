@@ -1,7 +1,11 @@
 """Defines the financial model class."""
 
+import logging
+
 from pycashflow.lineitem import LineItem
 from pycashflow.types import DateLike
+
+LOGGER = logging.getLogger(__name__)
 
 
 class FinancialModel:
@@ -15,6 +19,11 @@ class FinancialModel:
     def __init__(self, name: str, step: str = "1D") -> None:
         self.name = name
         self.step = step
+
+        LOGGER.warning(
+            "Currently there is no support for the `step` argument. You must "
+            "normalise your line items to the same step size manually."
+        )
 
         self.items = {}
 

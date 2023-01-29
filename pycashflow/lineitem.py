@@ -1,8 +1,11 @@
 """Defines the LineItem class: the building block of your models."""
 
 import itertools
+import logging
 
 from pycashflow.types import LineItemCallable, LineItemOperand
+
+LOGGER = logging.getLogger(__name__)
 
 
 class LineItem:
@@ -20,8 +23,13 @@ class LineItem:
         self.id = next(self.ID_COUNTER)
         self.func = func
 
-    def __repr__(self):
+        LOGGER.debug("Created LineItem %s.", self)
+
+    def __str__(self):
         return f"<LineItem id='{self.id}'>"
+
+    def __repr__(self):
+        return str(self)
 
     def __call__(self, t: int) -> float:
         """Computes the value of the line item at time `t`."""
