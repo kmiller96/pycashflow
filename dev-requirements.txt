@@ -1,2 +1,4 @@
 pytest
-just
+
+black
+pylint
