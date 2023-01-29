@@ -31,3 +31,15 @@ model["Profit"] = (
 df = model.run(steps=24)
 df.tail()
 ```
+
+## Local Development
+
+We rely on [`just`](https://github.com/casey/just) to act as our command runner.
+It is not possible to install this via PyPI and instead you must rely on the
+installation instructions on the Github page.
+
+The most common installation method is to use conda. Here, you can run:
+
+```bash
+conda install -c conda-forge just
+```
