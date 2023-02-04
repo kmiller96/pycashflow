@@ -114,3 +114,17 @@ def test_logical_or():
     li2 = LineItem(lambda t: False)
     result = li1 | li2
     assert result(0) == True  # pylint: disable=singleton-comparison
+
+
+def test_previous():
+    """Tests that LineItems can be used to access the previous value."""
+    li = LineItem(lambda t: t)
+    result = li.previous()
+    assert result(1) == 0
+
+
+def test_previous_with_offset():
+    """Tests that LineItems can be used to access the previous value with an offset."""
+    li = LineItem(lambda t: t)
+    result = li.previous(2)
+    assert result(1) == -1
