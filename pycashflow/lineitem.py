@@ -3,7 +3,7 @@
 import itertools
 import logging
 
-from pycashflow.types import LineItemCallable, LineItemOperand
+from pycashflow.types_ import LineItemCallable, LineItemOperand, LineItemCallableReturn
 
 LOGGER = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ class LineItem:
     def __repr__(self):
         return str(self)
 
-    def __call__(self, t: int) -> float:
+    def __call__(self, t: int) -> LineItemCallableReturn:
         """Computes the value of the line item at time `t`."""
         return self.func(t)
 
@@ -60,6 +60,21 @@ class LineItem:
             "Cannot set the function of a LineItem after initialisation."
         )
 
+    #############
+    ## Methods ##
+    #############
+
+    def previous(self, n: int = 1) -> "LineItem":
+        """Returns a line item which returns the value of this line item `n` periods ago.
+
+        Args:
+            n (int): The number of periods to look back.
+
+        Returns:
+            LineItem: The new line item.
+        """
+        return LineItem(lambda t: self.func(t - n))
+
     ###############
     ## Operators ##
     ###############
@@ -70,57 +85,67 @@ class LineItem:
 
     def add(self, other: LineItemOperand) -> "LineItem":
         """Adds a line item to another line item or a number."""
-        if isinstance(other, (int, float)):
-            return LineItem(lambda t: self.func(t) + other)
-        elif isinstance(other, LineItem):
-            return LineItem(lambda t: self.func(t) + other.func(t))
-        else:
-            raise TypeError(f"Cannot add {type(other)} to LineItem.")
+        return (
+            LineItem(lambda t: self(t) + other(t))
+            if isinstance(other, LineItem)
+            else LineItem(lambda t: self(t) + other)
+        )
 
     def sub(self, other: LineItemOperand) -> "LineItem":
         """Subtracts a line item from another line item or a number."""
-        if isinstance(other, (int, float)):
-            return LineItem(lambda t: self.func(t) - other)
-        elif isinstance(other, LineItem):
-            return LineItem(lambda t: self.func(t) - other.func(t))
-        else:
-            raise TypeError(f"Cannot subtract {type(other)} from LineItem.")
+        return (
+            LineItem(lambda t: self(t) - other(t))
+            if isinstance(other, LineItem)
+            else LineItem(lambda t: self(t) - other)
+        )
 
     def mul(self, other: LineItemOperand) -> "LineItem":
         """Multiplies a line item by another line item or a number."""
-        if isinstance(other, (int, float)):
-            return LineItem(lambda t: self.func(t) * other)
-        elif isinstance(other, LineItem):
-            return LineItem(lambda t: self.func(t) * other.func(t))
-        else:
-            raise TypeError(f"Cannot add {type(other)} to LineItem.")
+        return (
+            LineItem(lambda t: self(t) * other(t))
+            if isinstance(other, LineItem)
+            else LineItem(lambda t: self(t) * other)
+        )
 
     def div(self, other: LineItemOperand) -> "LineItem":
         """Divides a line item by another line item or a number."""
-        if isinstance(other, (int, float)):
-            return LineItem(lambda t: self.func(t) / other)
-        elif isinstance(other, LineItem):
-            return LineItem(lambda t: self.func(t) / other.func(t))
-        else:
-            raise TypeError(f"Cannot divide {type(other)} against LineItem.")
+        return (
+            LineItem(lambda t: self(t) / other(t))
+            if isinstance(other, LineItem)
+            else LineItem(lambda t: self(t) / other)
+        )
 
     def floordiv(self, other: LineItemOperand) -> "LineItem":
         """Floor-divides a line item by another line item or a number."""
-        if isinstance(other, (int, float)):
-            return LineItem(lambda t: self.func(t) // other)
-        elif isinstance(other, LineItem):
-            return LineItem(lambda t: self.func(t) // other.func(t))
-        else:
-            raise TypeError(f"Cannot floor-divide {type(other)} against LineItem.")
+        return (
+            LineItem(lambda t: self(t) // other(t))
+            if isinstance(other, LineItem)
+            else LineItem(lambda t: self(t) // other)
+        )
 
     def pow(self, other: LineItemOperand) -> "LineItem":
         """Raises a line item to the power of another line item or a number."""
-        if isinstance(other, (int, float)):
-            return LineItem(lambda t: self.func(t) ** other)
-        elif isinstance(other, LineItem):
-            return LineItem(lambda t: self.func(t) ** other.func(t))
-        else:
-            raise TypeError(f"Cannot raise LineItem to {type(other)}.")
+        return (
+            LineItem(lambda t: self(t) ** other(t))
+            if isinstance(other, LineItem)
+            else LineItem(lambda t: self(t) ** other)
+        )
+
+    def logical_and(self, other: LineItemOperand) -> "LineItem":
+        """Logical ANDs a line item with another line item or a number."""
+        return (
+            LineItem(lambda t: self(t) and other(t))
+            if isinstance(other, LineItem)
+            else LineItem(lambda t: self(t) and other)
+        )
+
+    def logical_or(self, other: LineItemOperand) -> "LineItem":
+        """Logical ORs a line item with another line item or a number."""
+        return (
+            LineItem(lambda t: self(t) or other(t))
+            if isinstance(other, LineItem)
+            else LineItem(lambda t: self(t) or other)
+        )
 
     ############################
     ## Magic Method Operators ##
@@ -148,3 +173,9 @@ class LineItem:
 
     __pow__ = pow
     __rpow__ = pow
+
+    __and__ = logical_and
+    __rand__ = logical_and
+
+    __or__ = logical_or
+    __ror__ = logical_or
