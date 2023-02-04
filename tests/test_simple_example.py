@@ -18,7 +18,7 @@ import pytest
 import pandas as pd
 from pandas.testing import assert_index_equal
 
-from pycashflow import FinancialModel, LineItem
+from pycashflow import Model, LineItem
 
 ##############
 ## Fixtures ##
@@ -52,21 +52,22 @@ def profit(r1, r2, e1, e2):
 
 
 @pytest.fixture
-def model(r1, r2, e1, e2) -> FinancialModel:
+def model(r1, r2, e1, e2) -> Model:
     """Defines the financial model outlined in the module docstring."""
-    model = FinancialModel("simple")
+    model = Model("simple")
 
-    model["revenue_1"] = LineItem(r1)
-    model["revenue_2"] = LineItem(r2)
-    model["expense_1"] = LineItem(e1)
-    model["expense_2"] = LineItem(e2)
+    revenue = model.section("revenue")
+    revenue["1"] = LineItem(r1)
+    revenue["2"] = LineItem(r2)
+    revenue.output = revenue["1"] + revenue["2"]
 
-    model["profit"] = (
-        model["revenue_1"]
-        + model["revenue_2"]
-        - model["expense_1"]
-        - model["expense_2"]
-    )
+    expenses = model.section("expenses")
+    expenses["1"] = LineItem(e1)
+    expenses["2"] = LineItem(e2)
+    expenses.output = expenses["1"] + expenses["2"]
+
+    profit = model.section("profit")
+    profit.output = revenue.output - expenses.output
 
     return model
 
@@ -76,13 +77,13 @@ def model(r1, r2, e1, e2) -> FinancialModel:
 ###########
 
 
-def test_model_correct_at_each_step(model: FinancialModel, profit: Callable):
+def test_model_correct_at_each_step(model: Model, profit: Callable):
     """Asserts that the model matches the explicitly defined profit function."""
     for t in range(1, 13):
         assert model["profit"](t) == profit(t)
 
 
-def test_model_can_return_dataframe(model: FinancialModel):
+def test_model_can_return_dataframe(model: Model):
     """Asserts that the model can return a DataFrame."""
     results = model.run(steps=12)
 
@@ -91,7 +92,9 @@ def test_model_can_return_dataframe(model: FinancialModel):
     assert set(results.columns) == {
         "revenue_1",
         "revenue_2",
-        "expense_1",
-        "expense_2",
+        "revenue",
+        "expenses_1",
+        "expenses_2",
+        "expenses",
         "profit",
     }
