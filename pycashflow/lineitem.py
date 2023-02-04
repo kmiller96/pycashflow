@@ -11,6 +11,12 @@ LOGGER = logging.getLogger(__name__)
 class LineItem:
     """Defines a single line item. The building block of your model.
 
+    The `func` argument can accept signatures of the form:
+
+        - `func(t: int)` - this is a standard line item that only relies on time.
+        - `func(t: int, self)` - this is a line item that can use its own state
+            at a previous step. This is useful for recursive models.
+
     Args:
         func (callable): The function which computes your line item at time `t`.
     """
@@ -33,11 +39,35 @@ class LineItem:
 
     def __call__(self, t: int) -> LineItemCallableReturn:
         """Computes the value of the line item at time `t`."""
-        return self.func(t)
+        if self.self_referencing:
+            return self.func(t, self)
+        else:
+            return self.func(t)
+
+    def _validate_func(self, func: LineItemCallable):
+        """Validates the function signature."""
+        if not callable(func):
+            raise TypeError("The function must be callable.")
+
+        if not hasattr(func, "__code__"):
+            raise TypeError("The function must be a Python function.")
+
+        if func.__code__.co_argcount not in (1, 2):
+            raise TypeError(
+                "The function must accept 1 or 2 arguments: `t` and `self`."
+            )
+
+        if func.__code__.co_argcount == 2 and func.__code__.co_varnames[1] != "self":
+            raise TypeError("The second argument must be named `self`.")
 
     ################
     ## Attributes ##
     ################
+
+    @property
+    def self_referencing(self) -> bool:
+        """Returns whether the function accepts a `self` argument."""
+        return self.func.__code__.co_argcount == 2
 
     @property
     def func(self):

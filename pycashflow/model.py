@@ -68,11 +68,14 @@ class Model:
         for n in range(steps):
             row = {"step": n}
 
-            for name, section in self.sections.items():
-                row[name] = section.output
+            for section in self.sections.values():
+                row[section.name] = section.output
 
-                for k, v in section.items.items():
-                    row[f"{name}_{k}"] = v
+                for name, item in section.items.items():
+                    if item.self_referencing:
+                        row[f"{section.name}_{name}"] = item(n, item)
+                    else:
+                        row[f"{section.name}_{name}"] = item(n)
 
             data.append(row)
 

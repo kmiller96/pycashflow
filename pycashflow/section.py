@@ -12,7 +12,7 @@ class Section:
     def __init__(self, name: str) -> None:
         self.name = name
 
-        self.items = {}
+        self.items: dict[str, LineItem] = {}
         self._section_output: Optional[LineItem] = None
 
     def __getitem__(self, key: str) -> LineItem:
