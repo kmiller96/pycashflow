@@ -1,8 +1,21 @@
-"""Validates that you can perform arithmetic on LineItems."""
+"""Verifies that the line items behave as expected."""
 
 import pytest
 
-from pycashflow import LineItem
+from pycashflow import Section, LineItem
+
+
+def test_create_via_init():
+    """Tests creating a line item via the __init__ method."""
+    line_item = LineItem(lambda t: 100)
+    assert line_item(0) == 100
+
+
+def test_create_via_section():
+    """Tests creating a line item via the section method."""
+    section = Section("test")
+    line_item = section.line("test", lambda t: 100)
+    assert line_item(0) == 100
 
 
 def test_negation():
